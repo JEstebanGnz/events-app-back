@@ -32,9 +32,20 @@ class MessageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, string $id)
     {
-        //
+
+        $messageContent = $request->input('message');
+        try {
+            Message::create(['content' => $messageContent,
+                'posted_by' => 1, 'event_id' => $id]);
+            return response()->json(['message'=> 'Message sent correctly']);
+        } catch (\Exception $exception) {
+            return response()->json(['message' => 'An error occurred when adding the message'], 500);
+        }
+
+
+
     }
 
     /**
