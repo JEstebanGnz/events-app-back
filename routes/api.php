@@ -25,6 +25,10 @@ Route::resource('events', \App\Http\Controllers\EventController::class,
 Route::resource('event/{id}/messages', \App\Http\Controllers\MessageController::class,
     [  'as' => 'api']);
 
+Route::resource('event/{id}/files', \App\Http\Controllers\EventFilesController::class,
+    [  'as' => 'api']);
+
+
 Route::middleware(['auth:sanctum'])->group(function (){
     Route::post('userData', [\App\Http\Controllers\AuthController::class, 'userInfo']);
     Route::get('user',[\App\Http\Controllers\AuthController::class, 'userInfo']);

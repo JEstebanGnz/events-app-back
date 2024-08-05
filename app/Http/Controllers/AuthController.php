@@ -27,26 +27,11 @@ class AuthController extends Controller
             'email' => $googleUser->getEmail(),
         ], [
             'name' => $googleUser->getName(),
-            'password' => 'automatic_generate_password',
-            'google2fa_secret' => null]);
+            'password' => 'automatic_generate_password'
+        ]);
 
-        $cookies = [];
-        //Set the LoginToken for the user so that I can know what user is trying to authenticate.
-        $userLoginToken = User::setUserLoginToken($user);
-        $userLoginTokenCookie = Cookie::make('user_login_token', $userLoginToken, 60);
-        $cookies [] = $userLoginTokenCookie;
-
-        //Is this the first time the user sings in?
-        if(!$user->google2fa_enabled){
-            //First time login, 2FA Validation must be set up
-            $google2FASecretKey = User::setGoogle2FASecretKey($user);
-            $google2FASecretKeyCookie = Cookie::make('google_2FA_secret_key', $google2FASecretKey, 60);
-            $cookies [] = $google2FASecretKeyCookie;
-            return redirect()->away(Env('GOOGLE_2FA_SETUP_FRONT_REDIRECT'))->withCookies($cookies);
-        }
-
-        //User has already logged in before, redirect directly to otp validation screen
-        return redirect()->away(Env('GOOGLE_OPT_VALIDATION_FRONT_REDIRECT'))->withCookies($cookies);
+        $token = $user->createToken('auth_token')->plainTextToken;
+        return response()->json(['user' => $user, 'token' => $token])->withHeaders(['auth-token' => $token]);
     }
 
     public function logout(Request $request){

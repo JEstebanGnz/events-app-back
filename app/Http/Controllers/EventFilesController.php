@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
-use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class MessageController extends Controller
+class EventFilesController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +14,7 @@ class MessageController extends Controller
     public function index(int $id)
     {
         $event = Event::findOrFail($id);
-        $messages = DB::table('event_messages')
+        $messages = DB::table('event_files')
             ->where('event_id','=',$event->id)
             ->orderBy('created_at','desc')->get();
         return response()->json($messages);
@@ -32,25 +31,17 @@ class MessageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, string $id)
+    public function store(Request $request)
     {
-
-        $messageContent = $request->input('message');
-        try {
-            Message::create(['content' => $messageContent,
-                'posted_by' => 1, 'event_id' => $id]);
-            return response()->json(['message'=> 'Message sent correctly']);
-        } catch (\Exception $exception) {
-            return response()->json(['message' => 'An error occurred when adding the message'], 500);
-        }
+        //
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+    public function show(string $id)
     {
-
+        //
     }
 
     /**
