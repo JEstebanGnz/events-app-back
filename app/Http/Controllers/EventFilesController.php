@@ -14,11 +14,34 @@ class EventFilesController extends Controller
     public function index(int $id)
     {
         $event = Event::findOrFail($id);
-        $messages = DB::table('event_files')
+        $files = DB::table('event_files')
             ->where('event_id','=',$event->id)
+            ->where('type','!=', 'logo')
             ->orderBy('created_at','desc')->get();
-        return response()->json($messages);
+        $files->transform(function ($file) {
+            $file->payload = json_decode($file->payload, true)[0]; // Decode JSON before sending
+            return $file;
+        });
+        return response()->json($files);
     }
+
+    /**
+     * Returns the logo associated to the event
+     */
+    public function getLogo(int $id)
+    {
+        $event = Event::findOrFail($id);
+        $logoFile = DB::table('event_files')
+            ->where('event_id','=', $event->id)
+            ->where('type', '=','logo') // Assuming 'type' column identifies file types
+            ->first();
+
+        if ($logoFile) {
+            $logoFile->payload = json_decode($logoFile->payload, true)[0]; // Decode JSON if necessary
+        }
+        return response()->json($logoFile);
+    }
+
 
     /**
      * Show the form for creating a new resource.

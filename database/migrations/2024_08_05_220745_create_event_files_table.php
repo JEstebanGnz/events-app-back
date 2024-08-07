@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('event_files', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type',['image','video']);
+            $table->enum('type',['logo','image','video']);
             $table->json('payload');
             $table->foreignId('event_id')->constrained();
             $table->timestamps();
