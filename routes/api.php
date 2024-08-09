@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Revolution\Google\Sheets\Facades\Sheets;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,14 @@ Route::resource('event/{id}/files', \App\Http\Controllers\EventFilesController::
 
 Route::get('event/{id}/eventFiles/logo', [\App\Http\Controllers\EventFilesController::class, 'getLogo']);
 
+Route::get('/test', function () {
+    $sheet = Sheets::spreadsheet(env('POST_SPREADSHEET_ID'))->sheet('Agenda')->get();
+    $header = $sheet->pull(0);
+    /*    dd($sheet,$header);*/
+    $values = Sheets::collection($header, $sheet);
+    $eventMeetings = array_values($values->toArray());
+    dd($eventMeetings);
+});
 
 Route::middleware(['auth:sanctum'])->group(function (){
     Route::post('userData', [\App\Http\Controllers\AuthController::class, 'userInfo']);

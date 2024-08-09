@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('location');
             $table->string('start_date');
             $table->string('end_date');
+            $table->text('online_link')->nullable();
             $table->foreignId('event_id')->constrained();
             $table->timestamps();
         });
