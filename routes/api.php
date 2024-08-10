@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Revolution\Google\Sheets\Facades\Sheets;
 
@@ -37,7 +38,29 @@ Route::get('/test', function () {
     /*    dd($sheet,$header);*/
     $values = Sheets::collection($header, $sheet);
     $eventMeetings = array_values($values->toArray());
-    dd($eventMeetings);
+//    dd($eventMeetings);
+    foreach ($eventMeetings as $meeting){
+        if($meeting['Name'] !== ""){
+            $startDate = \Illuminate\Support\Carbon::parse("{$meeting['Date']} {$meeting['StartTime']}");
+            $endDate = \Illuminate\Support\Carbon::parse("{$meeting['Date']} {$meeting['EndTime']}");
+            $formattedStartDate = $startDate->setTimezone('Europe/London')->toIso8601String();
+            $formattedEndDate = $endDate->setTimezone('Europe/London')->toIso8601String();
+            DB::table('event_meetings')->updateOrInsert(['name' => $meeting['Name']],
+                [
+                    'description' => $meeting['Description'],
+                    'location' => $meeting['Location'],
+                    'start_date' => $formattedStartDate,
+                    'end_date' => $formattedEndDate,
+                    'online_link' => $meeting['ZoomLink'],
+                    'event_id' => 1,
+                    'visible' => $meeting['Visible']
+                ]);
+        }
+    }
+
+    return response()->json(DB::table('event_meetings')->get());
+
+
 });
 
 Route::middleware(['auth:sanctum'])->group(function (){

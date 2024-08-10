@@ -14,11 +14,13 @@ return new class extends Migration
         Schema::create('event_meetings', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->text('description');
             $table->string('location');
             $table->string('start_date');
             $table->string('end_date');
             $table->text('online_link')->nullable();
             $table->foreignId('event_id')->constrained();
+            $table->boolean('visible')->default(false);
             $table->timestamps();
         });
     }
