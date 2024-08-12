@@ -32,36 +32,9 @@ Route::resource('event/{id}/files', \App\Http\Controllers\EventFilesController::
 
 Route::get('event/{id}/eventFiles/logo', [\App\Http\Controllers\EventFilesController::class, 'getLogo']);
 
-Route::get('/test', function () {
-    $sheet = Sheets::spreadsheet(env('POST_SPREADSHEET_ID'))->sheet('Agenda')->get();
-    $header = $sheet->pull(0);
-    /*    dd($sheet,$header);*/
-    $values = Sheets::collection($header, $sheet);
-    $eventMeetings = array_values($values->toArray());
-//    dd($eventMeetings);
-    foreach ($eventMeetings as $meeting){
-        if($meeting['Name'] !== ""){
-            $startDate = \Illuminate\Support\Carbon::parse("{$meeting['Date']} {$meeting['StartTime']}");
-            $endDate = \Illuminate\Support\Carbon::parse("{$meeting['Date']} {$meeting['EndTime']}");
-            $formattedStartDate = $startDate->setTimezone('Europe/London')->toIso8601String();
-            $formattedEndDate = $endDate->setTimezone('Europe/London')->toIso8601String();
-            DB::table('event_meetings')->updateOrInsert(['name' => $meeting['Name']],
-                [
-                    'description' => $meeting['Description'],
-                    'location' => $meeting['Location'],
-                    'start_date' => $formattedStartDate,
-                    'end_date' => $formattedEndDate,
-                    'online_link' => $meeting['ZoomLink'],
-                    'event_id' => 1,
-                    'visible' => $meeting['Visible']
-                ]);
-        }
-    }
+Route::resource('event/{id}/meetings', \App\Http\Controllers\EventMeetingsController::class,
+    [  'as' => 'api']);
 
-    return response()->json(DB::table('event_meetings')->get());
-
-
-});
 
 Route::middleware(['auth:sanctum'])->group(function (){
     Route::post('userData', [\App\Http\Controllers\AuthController::class, 'userInfo']);

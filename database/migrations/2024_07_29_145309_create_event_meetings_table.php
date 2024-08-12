@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('event_meetings', function (Blueprint $table) {
             $table->id();
+            $table->string('internal_identifier');
             $table->string('name');
             $table->text('description');
             $table->string('location');
