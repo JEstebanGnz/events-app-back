@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Facades\Cookie;
+use phpseclib3\Crypt\Hash;
 
 
 class AuthController extends Controller
@@ -30,8 +31,8 @@ class AuthController extends Controller
             'email' => $frontUserInfo["email"]
             ],
             [
-                'name' => $frontUserInfo["name"],
-                'password' => 'automatic_generate_password',
+            'name' => $frontUserInfo["name"],
+            'password' => 'automatic_generate_password',
             ]);
         }
 
@@ -48,18 +49,45 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request){
 
-        // Logout the user
-        Auth::guard('web')->logout();
-        // Revoke all tokens for the authenticated user
-        $user = auth()->user();
-        $user->tokens()->delete();
-        Cookie::queue(Cookie::forget('access_token'));
+    public function handleCredentialsAuth(Request $request)
+    {
+        $frontUserInfo = $request->input('user');
 
-        return [
-            'message' => 'You have successfully logged out'
-        ];
+        //1) Verify there's an user associated with that email
+        $user = DB::table('users')->where('email','=', $frontUserInfo["email"])->first();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'There is no user associated with that email'
+            ], 404);
+        }
+
+        //2) TODO Check if user can actually access this event
+        //TODO Send eventId from the frontend and check here
+
+        //3) Compare the password typed with the one stored in the DB.
+        if (!\Illuminate\Support\Facades\Hash::check($frontUserInfo['password'], $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Wrong password'
+            ], 401);
+        }
+
+        $accessibleEventsByUser = DB::table('restricted_event_users')
+            ->where('user_id','=',$user->id)->get();
+
+       //3) User completely validated, return user info
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Authentication successful',
+            'data' => [
+                'user' => $user,
+                'events_available' => $accessibleEventsByUser
+            ]
+        ]);
+
     }
 
     public function userInfo(Request $request){

@@ -19,6 +19,9 @@ use Revolution\Google\Sheets\Facades\Sheets;
 /* >>>>>>>>>>>>>>>>>>>>>>>  Auth routes >>>>>>>><<<<<< */
 Route::post('auth/google', [\App\Http\Controllers\AuthController::class, 'handleGoogleAuth']);
 
+Route::post('auth/credentials', [\App\Http\Controllers\AuthController::class, 'handleCredentialsAuth']);
+
+
 Route::resource('events', \App\Http\Controllers\EventController::class,
     [  'as' => 'api']);
 
@@ -33,6 +36,15 @@ Route::get('event/{id}/eventFiles/logo', [\App\Http\Controllers\EventFilesContro
 Route::resource('event/{id}/meetings', \App\Http\Controllers\EventMeetingsController::class,
     [  'as' => 'api']);
 
+Route::get('/addUser', function (Request $request) {
+
+    $user = $request->input('user');
+
+    DB::table('users')->insert(['name' => $user['name'], 'email' => $user['email'],
+        'password' => \Illuminate\Support\Facades\Hash::make($user['password'])]);
+
+
+});
 
 Route::middleware(['auth:sanctum'])->group(function (){
     Route::get('userData/test', [\App\Http\Controllers\AuthController::class, 'userInfo']);
