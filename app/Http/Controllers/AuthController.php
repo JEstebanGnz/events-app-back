@@ -21,7 +21,6 @@ class AuthController extends Controller
 
     public function handleGoogleAuth(Request $request)
     {
-
         $frontUserInfo = $request->input('user');
         $user = User::where('email', $frontUserInfo["email"])->first();
 
@@ -35,14 +34,12 @@ class AuthController extends Controller
             'password' => 'automatic_generate_password',
             ]);
         }
-
         $accessibleEventsByUser = DB::table('restricted_event_users')
             ->where('user_id','=',$user->id)->get();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
+//        $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json([
-            'access_token' => $token,
+//            'access_token' => $token,
             'events_available' => $accessibleEventsByUser,
             'token_type' => 'Bearer',
             'user' => $user,
@@ -53,6 +50,7 @@ class AuthController extends Controller
     public function handleCredentialsAuth(Request $request)
     {
         $frontUserInfo = $request->input('user');
+        $eventId = $request->input('eventId');
 
         //1) Verify there's an user associated with that email
         $user = DB::table('users')->where('email','=', $frontUserInfo["email"])->first();
@@ -64,8 +62,13 @@ class AuthController extends Controller
             ], 404);
         }
 
-        //2) TODO Check if user can actually access this event
-        //TODO Send eventId from the frontend and check here
+        If (!DB::table('restricted_event_users')->where('event_id','=', $eventId)
+        ->where('user_id','=',$user->id)->first()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You are not in the allowed guests for this event!'
+            ], 401);
+        }
 
         //3) Compare the password typed with the one stored in the DB.
         if (!\Illuminate\Support\Facades\Hash::check($frontUserInfo['password'], $user->password)) {
@@ -75,8 +78,13 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $accessibleEventsByUser = DB::table('restricted_event_users')
+        $restrictedEventsAccessible = DB::table('restricted_event_users')
             ->where('user_id','=',$user->id)->get();
+
+        $restrictedEventsAccessibleIds = array_unique(array_column($restrictedEventsAccessible->toArray(), 'event_id'));
+
+        $accessibleEventsByUser = DB::table('events')->orWhereIn('id', $restrictedEventsAccessibleIds)
+            ->orWhere('restricted_access','=',0)->get();
 
        //3) User completely validated, return user info
         return response()->json([
