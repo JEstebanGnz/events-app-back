@@ -53,7 +53,7 @@ class AuthController extends Controller
         $eventId = $request->input('eventId');
 
         //1) Verify there's an user associated with that email
-        $user = DB::table('users')->where('email','=', $frontUserInfo["email"])->first();
+        $user = DB::table('users')->where('email', '=', $frontUserInfo["email"])->first();
 
         if (!$user) {
             return response()->json([
@@ -62,8 +62,8 @@ class AuthController extends Controller
             ], 404);
         }
 
-        If (!DB::table('restricted_event_users')->where('event_id','=', $eventId)
-        ->where('user_id','=',$user->id)->first()){
+        if (!DB::table('restricted_event_users')->where('event_id', '=', $eventId)
+            ->where('user_id', '=', $user->id)->first()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'You are not in the allowed guests for this event!'
@@ -79,20 +79,27 @@ class AuthController extends Controller
         }
 
         $restrictedEventsAccessible = DB::table('restricted_event_users')
-            ->where('user_id','=',$user->id)->get();
+            ->where('user_id', '=', $user->id)->get();
 
         $restrictedEventsAccessibleIds = array_unique(array_column($restrictedEventsAccessible->toArray(), 'event_id'));
 
         $accessibleEventsByUser = DB::table('events')->orWhereIn('id', $restrictedEventsAccessibleIds)
-            ->orWhere('restricted_access','=',0)->get();
+            ->orWhere('restricted_access', '=', 0)->get();
 
-       //3) User completely validated, return user info
+        $userEventsAdmin = DB::table('event_admin_users')->where('user_id', '=', $user->id)->get();
+        $userEventsAdminIds = array_unique(array_column($userEventsAdmin->toArray(), 'event_id'));
+
+
+
+
+        //3) User completely validated, return user info
         return response()->json([
             'status' => 'success',
             'message' => 'Authentication successful',
             'data' => [
                 'user' => $user,
-                'events_available' => $accessibleEventsByUser
+                'events_available' => $accessibleEventsByUser,
+                'user_events_admin'=> $userEventsAdminIds
             ]
         ]);
 
