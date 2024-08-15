@@ -52,7 +52,7 @@ class AuthController extends Controller
         $frontUserInfo = $request->input('user');
         $eventId = $request->input('eventId');
 
-        //1) Verify there's an user associated with that email
+        //1) Verify there's a user associated with that email
         $user = DB::table('users')->where('email', '=', $frontUserInfo["email"])->first();
 
         if (!$user) {
@@ -66,7 +66,7 @@ class AuthController extends Controller
             ->where('user_id', '=', $user->id)->first()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'You are not in the allowed guests for this event!'
+                'message' => 'You are not in the allowed guests list for this event!'
             ], 401);
         }
 
@@ -78,6 +78,8 @@ class AuthController extends Controller
             ], 401);
         }
 
+        //Set default role to user
+
         $restrictedEventsAccessible = DB::table('restricted_event_users')
             ->where('user_id', '=', $user->id)->get();
 
@@ -88,8 +90,6 @@ class AuthController extends Controller
 
         $userEventsAdmin = DB::table('event_admin_users')->where('user_id', '=', $user->id)->get();
         $userEventsAdminIds = array_unique(array_column($userEventsAdmin->toArray(), 'event_id'));
-
-
 
 
         //3) User completely validated, return user info
