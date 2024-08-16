@@ -34,15 +34,27 @@ class AuthController extends Controller
             'password' => 'automatic_generate_password',
             ]);
         }
-        $accessibleEventsByUser = DB::table('restricted_event_users')
-            ->where('user_id','=',$user->id)->get();
 
-//        $token = $user->createToken('auth_token')->plainTextToken;
+        $restrictedEventsAccessible = DB::table('restricted_event_users')
+            ->where('user_id', '=', $user->id)->get();
+
+        $restrictedEventsAccessibleIds = array_unique(array_column($restrictedEventsAccessible->toArray(), 'event_id'));
+
+        $accessibleEventsByUser = DB::table('events')->orWhereIn('id', $restrictedEventsAccessibleIds)
+            ->orWhere('restricted_access', '=', 0)->get();
+
+        $userEventsAdmin = DB::table('event_admin_users')->where('user_id', '=', $user->id)->get();
+        $userEventsAdminIds = array_unique(array_column($userEventsAdmin->toArray(), 'event_id'));
+
+
         return response()->json([
-//            'access_token' => $token,
-            'events_available' => $accessibleEventsByUser,
-            'token_type' => 'Bearer',
-            'user' => $user,
+            'status' => 'success',
+            'message' => 'Authentication successful',
+            'data' => [
+                'user' => $user,
+                'events_available' => $accessibleEventsByUser,
+                'user_events_admin'=> $userEventsAdminIds
+            ]
         ]);
     }
 
@@ -54,12 +66,19 @@ class AuthController extends Controller
 
         //1) Verify there's a user associated with that email
         $user = DB::table('users')->where('email', '=', $frontUserInfo["email"])->first();
-
+        $eventId = 1;
         if (!$user) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'There is no user associated with that email'
-            ], 404);
+
+            $user = User::updateOrCreate(
+                [
+                    'email' => $frontUserInfo["email"]
+                ],
+                [
+                    'name' => $frontUserInfo["email"],
+                    'password' => \Illuminate\Support\Facades\Hash::make($frontUserInfo['password']),
+                ]);
+
+            DB::table('restricted_event_users')->updateOrInsert(['event_id' => $eventId, 'user_id' => $user->id]);
         }
 
         if (!DB::table('restricted_event_users')->where('event_id', '=', $eventId)

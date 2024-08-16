@@ -47,6 +47,38 @@ class User extends Authenticatable
     ];
 
 
+    public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->BelongsToMany(Role::class);
+    }
 
+    public function role()
+    {
+        $user = $this;
+        $actualRole = session('role');
+        //Check if is still valid
+        $userRoles = $user->roles;
+
+        foreach ($userRoles as $role) {
+            if ($actualRole === $role->id) {
+                return $role;
+            }
+        }
+    }
+
+    public function hasRole(string $roleName): bool
+    {
+        try {
+            $roleNumber = Role::getRoleNumber($roleName);
+        } catch (\RuntimeException $e) {
+            return false;
+        }
+        return $this->role()->customId >= $roleNumber;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('administrador');
+    }
 
 }

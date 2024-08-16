@@ -21,8 +21,13 @@ Route::post('auth/google', [\App\Http\Controllers\AuthController::class, 'handle
 
 Route::post('auth/credentials', [\App\Http\Controllers\AuthController::class, 'handleCredentialsAuth']);
 
+Route::resource('users', \App\Http\Controllers\UserController::class,
+    [  'as' => 'api']);
 
 Route::resource('events', \App\Http\Controllers\EventController::class,
+    [  'as' => 'api']);
+
+Route::resource('roles', \App\Http\Controllers\RoleController::class,
     [  'as' => 'api']);
 
 Route::resource('event/{id}/messages', \App\Http\Controllers\MessageController::class,
