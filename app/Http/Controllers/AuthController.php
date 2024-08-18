@@ -62,30 +62,15 @@ class AuthController extends Controller
     public function handleCredentialsAuth(Request $request)
     {
         $frontUserInfo = $request->input('user');
-        $eventId = $request->input('eventId');
+//        $eventId = $request->input('eventId');
 
         //1) Verify there's a user associated with that email
         $user = DB::table('users')->where('email', '=', $frontUserInfo["email"])->first();
-        $eventId = 1;
-        if (!$user) {
 
-            $user = User::updateOrCreate(
-                [
-                    'email' => $frontUserInfo["email"]
-                ],
-                [
-                    'name' => $frontUserInfo["email"],
-                    'password' => \Illuminate\Support\Facades\Hash::make($frontUserInfo['password']),
-                ]);
-
-            DB::table('restricted_event_users')->updateOrInsert(['event_id' => $eventId, 'user_id' => $user->id]);
-        }
-
-        if (!DB::table('restricted_event_users')->where('event_id', '=', $eventId)
-            ->where('user_id', '=', $user->id)->first()) {
+        if (!$user){
             return response()->json([
                 'status' => 'error',
-                'message' => 'You are not in the allowed guests list for this event!'
+                'message' => 'Your email doesn\'t exist in our records!'
             ], 401);
         }
 
@@ -93,35 +78,12 @@ class AuthController extends Controller
         if (!\Illuminate\Support\Facades\Hash::check($frontUserInfo['password'], $user->password)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Wrong password'
+                'message' => 'Wrong password!'
             ], 401);
         }
 
-        //Set default role to user
-
-        $restrictedEventsAccessible = DB::table('restricted_event_users')
-            ->where('user_id', '=', $user->id)->get();
-
-        $restrictedEventsAccessibleIds = array_unique(array_column($restrictedEventsAccessible->toArray(), 'event_id'));
-
-        $accessibleEventsByUser = DB::table('events')->orWhereIn('id', $restrictedEventsAccessibleIds)
-            ->orWhere('restricted_access', '=', 0)->get();
-
-        $userEventsAdmin = DB::table('event_admin_users')->where('user_id', '=', $user->id)->get();
-        $userEventsAdminIds = array_unique(array_column($userEventsAdmin->toArray(), 'event_id'));
-
-
         //3) User completely validated, return user info
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Authentication successful',
-            'data' => [
-                'user' => $user,
-                'events_available' => $accessibleEventsByUser,
-                'user_events_admin'=> $userEventsAdminIds
-            ]
-        ]);
-
+        return response()->json(['email' => $user->email]);
     }
 
     public function userInfo(Request $request){
