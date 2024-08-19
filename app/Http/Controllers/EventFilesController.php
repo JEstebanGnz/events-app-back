@@ -17,7 +17,7 @@ class EventFilesController extends Controller
         $files = DB::table('event_files')
             ->where('event_id','=',$event->id)
             ->where('type','!=', 'logo')
-            ->orderBy('created_at','desc')->get();
+            ->orderBy('id','desc')->get();
         $files->transform(function ($file) {
             $file->payload = json_decode($file->payload, true)[0]; // Decode JSON before sending
             return $file;

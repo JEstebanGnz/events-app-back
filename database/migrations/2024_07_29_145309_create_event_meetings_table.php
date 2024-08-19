@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->string('location');
+            $table->string('speaker');
             $table->string('start_date');
             $table->string('end_date');
             $table->text('online_link')->nullable();

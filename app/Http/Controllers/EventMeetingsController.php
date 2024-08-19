@@ -13,10 +13,10 @@ class EventMeetingsController extends Controller
     public function index(int $id)
     {
         return response()->json(EventMeeting::where('event_id','=', $id)
-            ->where('visible','=',true)
+            ->where('visible','=',true)->orderBy('start_date','asc')
             ->select(['id',
                 'name', 'description','location',
-                'start_date','end_date','online_link'])->get());
+                'start_date','end_date','online_link','speaker'])->get());
     }
 
     /**
