@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
 {
@@ -23,12 +24,19 @@ class EventController extends Controller
         //
     }
 
+    public function getRestrictedAccessEvents()
+    {
+        return response()->json(DB::table('events as e')->where('e.restricted_access', '=', true)
+            ->join('restricted_event_users as reu','e.id','=','reu.event_id')->get());
+
+    }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+
     }
 
     /**

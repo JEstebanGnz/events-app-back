@@ -34,11 +34,26 @@ class MessageController extends Controller
      */
     public function store(Request $request, string $id)
     {
-
         $messageContent = $request->input('message');
         try {
             Message::create(['content' => $messageContent,
                 'posted_by' => 1, 'event_id' => $id]);
+
+            //Also set the has_unread_messages from users table to users associated with that email, to true
+
+            // Find all users associated with the event
+            $userIds = DB::table('restricted_event_users')
+                ->where('event_id', $id)
+                ->pluck('user_id'); // Get the user IDs as a collection
+
+            // Update the has_unread_messages for these users
+            DB::table('users')
+                ->whereIn('id', $userIds)
+                ->where('has_unread_messages', false)
+                ->update(['has_unread_messages' => true]);
+
+
+
             return response()->json(['message'=> 'Message sent correctly']);
         } catch (\Exception $exception) {
             return response()->json(['message' => 'An error occurred when adding the message'], 500);

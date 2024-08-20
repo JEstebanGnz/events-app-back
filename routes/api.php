@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -21,8 +22,12 @@ Route::post('auth/google', [\App\Http\Controllers\AuthController::class, 'handle
 
 Route::post('auth/credentials/validate', [\App\Http\Controllers\AuthController::class, 'handleCredentialsAuth']);
 
-Route::resource('users', \App\Http\Controllers\UserController::class,
+Route::resource('users', UserController::class,
     [  'as' => 'api']);
+
+Route::put('/users/{userId}/roles', [UserController::class, 'updateRoles']);
+
+Route::get('events/restricted', [\App\Http\Controllers\EventController::class, 'getRestrictedAccessEvents']);
 
 Route::resource('events', \App\Http\Controllers\EventController::class,
     [  'as' => 'api']);
@@ -33,6 +38,8 @@ Route::resource('roles', \App\Http\Controllers\RoleController::class,
 Route::resource('event/{id}/messages', \App\Http\Controllers\MessageController::class,
     [  'as' => 'api']);
 
+Route::get('event/{id}/messages/set', [\App\Http\Controllers\EventFilesController::class, 'getLogo']);
+
 Route::resource('event/{id}/files', \App\Http\Controllers\EventFilesController::class,
     [  'as' => 'api']);
 
@@ -41,7 +48,7 @@ Route::get('event/{id}/eventFiles/logo', [\App\Http\Controllers\EventFilesContro
 Route::resource('event/{id}/meetings', \App\Http\Controllers\EventMeetingsController::class,
     [  'as' => 'api']);
 
-Route::post('userInfo', [\App\Http\Controllers\UserController::class, 'userInfo']);
+Route::post('userInfo', [UserController::class, 'userInfo']);
 
 
 

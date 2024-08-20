@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Nette\Schema\ValidationException;
+use phpseclib3\Crypt\Hash;
 
 class UserController extends Controller
 {
@@ -46,7 +49,21 @@ class UserController extends Controller
         return response()->json([
                 'user' => $user,
             ]);
+    }
 
+
+    public function updateRoles(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+        $roles = $request->input('roles'); // Array of role IDs
+        // Detach all roles first
+        $user->roles()->detach();
+
+        // Attach the new roles
+        foreach ($roles as $roleId) {
+            $user->roles()->attach($roleId);
+        }
+        return response()->json(['message' => 'Roles updated successfully']);
     }
 
     /**
@@ -62,7 +79,45 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = $request->input('user');
+
+        try{
+            $userExists = DB::table('users')->where('email', '=', $user["email"])->first();
+
+            if($userExists){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Email already exists!'
+                ], 401);
+            }
+
+            else{
+                $userCreated = User::updateOrCreate(['email' => $user["email"]],
+                    ['name' => $user["name"],
+                        'password' => \Illuminate\Support\Facades\Hash::make($user["password"])]);
+
+                //Set default role to user
+                $defaultRoleId = Role::getRoleIdByName('user');
+                DB::table('role_user')->updateOrInsert(['user_id' => $userCreated->id, 'role_id' => $defaultRoleId]);
+
+                return response()->json([
+                    'message' => 'User created successfully',
+                    'user' => $user
+                ], 201);
+
+            }
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while creating the user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
     }
 
     /**
