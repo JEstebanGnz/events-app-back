@@ -35,9 +35,10 @@ class MessageController extends Controller
     public function store(Request $request, string $id)
     {
         $messageContent = $request->input('message');
+        $userId = $request->input('userId');
         try {
             Message::create(['content' => $messageContent,
-                'posted_by' => 1, 'event_id' => $id]);
+                'posted_by' => $userId, 'event_id' => $id]);
 
             //Also set the has_unread_messages from users table to users associated with that email, to true
 
@@ -51,8 +52,6 @@ class MessageController extends Controller
                 ->whereIn('id', $userIds)
                 ->where('has_unread_messages', false)
                 ->update(['has_unread_messages' => true]);
-
-
 
             return response()->json(['message'=> 'Message sent correctly']);
         } catch (\Exception $exception) {

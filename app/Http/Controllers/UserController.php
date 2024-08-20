@@ -51,6 +51,23 @@ class UserController extends Controller
             ]);
     }
 
+    public function hasUnreadMessages(Request $request, $userId){
+
+        $hasUnreadMessages = DB::table('users')->where('id', '=', $userId)
+            ->where('has_unread_messages', '=', 1)->first();
+        if($hasUnreadMessages){
+            return response()->json(['hasUnreadMessages' => true]);
+        }
+        else{
+            return response()->json(['hasUnreadMessages' => false]);
+        }
+    }
+
+    public function markReadMessages(Request $request, $userId){
+
+        DB::table('users')->where('id', '=', $userId)
+            ->where('has_unread_messages', '=', 1)->update(['has_unread_messages' => 0]);
+    }
 
     public function updateRoles(Request $request, $userId)
     {

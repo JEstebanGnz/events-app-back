@@ -22,6 +22,10 @@ Route::post('auth/google', [\App\Http\Controllers\AuthController::class, 'handle
 
 Route::post('auth/credentials/validate', [\App\Http\Controllers\AuthController::class, 'handleCredentialsAuth']);
 
+Route::get('users/{userId}/hasUnreadMessages', [\App\Http\Controllers\UserController::class, 'hasUnreadMessages']);
+
+Route::get('users/{userId}/markReadMessages', [\App\Http\Controllers\UserController::class, 'markReadMessages']);
+
 Route::resource('users', UserController::class,
     [  'as' => 'api']);
 
