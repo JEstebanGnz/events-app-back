@@ -3,17 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use http\Exception\RuntimeException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Mockery\Exception;
 
 class EventController extends Controller
 {
     /**
      * Get all the events from the DB.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Event::all());
+        $restrictedAccess = $request->query('restrictedAccess');
+        $query = Event::with(['users.roles', 'admins.roles']);
+        if ($restrictedAccess !== null){
+            $query->where('restricted_access','=', true);
+        }
+        $events = $query->get();
+        return response()->json($events);
     }
 
     /**
@@ -24,18 +32,38 @@ class EventController extends Controller
         //
     }
 
-    public function getRestrictedAccessEvents()
-    {
-        return response()->json(DB::table('events as e')->where('e.restricted_access', '=', true)
-            ->join('restricted_event_users as reu','e.id','=','reu.event_id')->get());
-
-    }
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+
+    }
+
+    /**
+     * Assign Users to the event
+     */
+    public function assignUsers(Request $request, string $id)
+    {
+        try {
+            $event = Event::findOrFail($id);
+
+            $users = $request->input('users');
+            $userIds = array_map(function ($user){
+                return $user['id'];
+            }, $users);
+            $event->users()->sync($userIds);
+
+            $admins = $request->input('admins');
+            $adminIds = array_map(function ($admin){
+                return $admin['id'];
+            }, $admins);
+            $event->admins()->sync($adminIds);
+            return response()->json(['message' => 'Event users updated successfully']);
+        }
+        catch (\Exception $exception) {
+            return response()->json(['message' => 'An error occurred when uploading event users'], 500);
+        }
 
     }
 

@@ -19,8 +19,9 @@ use Revolution\Google\Sheets\Facades\Sheets;
 
 /* >>>>>>>>>>>>>>>>>>>>>>>  Auth routes >>>>>>>><<<<<< */
 Route::post('auth/google', [\App\Http\Controllers\AuthController::class, 'handleGoogleAuth']);
-
 Route::post('auth/credentials/validate', [\App\Http\Controllers\AuthController::class, 'handleCredentialsAuth']);
+/* >>>>>>>>>>>>>>>>>>>>>>>  Auth routes >>>>>>>><<<<<< */
+
 
 Route::get('users/{userId}/hasUnreadMessages', [\App\Http\Controllers\UserController::class, 'hasUnreadMessages']);
 
@@ -29,20 +30,23 @@ Route::get('users/{userId}/markReadMessages', [\App\Http\Controllers\UserControl
 Route::resource('users', UserController::class,
     [  'as' => 'api']);
 
+Route::post('userInfo', [UserController::class, 'userInfo']);
+
 Route::put('/users/{userId}/roles', [UserController::class, 'updateRoles']);
 
-Route::get('events/restricted', [\App\Http\Controllers\EventController::class, 'getRestrictedAccessEvents']);
-
-Route::resource('events', \App\Http\Controllers\EventController::class,
+Route::resource('roles', \App\Http\Controllers\RoleController::class,
     [  'as' => 'api']);
 
-Route::resource('roles', \App\Http\Controllers\RoleController::class,
+Route::resource('events', \App\Http\Controllers\EventController::class,
     [  'as' => 'api']);
 
 Route::resource('event/{id}/messages', \App\Http\Controllers\MessageController::class,
     [  'as' => 'api']);
 
 Route::get('event/{id}/messages/set', [\App\Http\Controllers\EventFilesController::class, 'getLogo']);
+
+Route::post('event/{id}/users/assign', [\App\Http\Controllers\EventController::class, 'assignUsers']);
+
 
 Route::resource('event/{id}/files', \App\Http\Controllers\EventFilesController::class,
     [  'as' => 'api']);
@@ -52,19 +56,7 @@ Route::get('event/{id}/eventFiles/logo', [\App\Http\Controllers\EventFilesContro
 Route::resource('event/{id}/meetings', \App\Http\Controllers\EventMeetingsController::class,
     [  'as' => 'api']);
 
-Route::post('userInfo', [UserController::class, 'userInfo']);
 
-
-
-Route::get('/addUser', function (Request $request) {
-
-    $user = $request->input('user');
-
-    DB::table('users')->insert(['name' => $user['name'], 'email' => $user['email'],
-        'password' => \Illuminate\Support\Facades\Hash::make($user['password'])]);
-
-
-});
 
 Route::middleware(['auth:sanctum'])->group(function (){
     Route::get('userData/test', [\App\Http\Controllers\AuthController::class, 'userInfo']);

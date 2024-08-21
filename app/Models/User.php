@@ -52,6 +52,16 @@ class User extends Authenticatable
         return $this->BelongsToMany(Role::class);
     }
 
+    public function events(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'restricted_event_users', 'user_id', 'event_id');
+    }
+
+    public function eventsAdmin(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_admin_users', 'user_id', 'event_id');
+    }
+
     public function role()
     {
         $user = $this;
