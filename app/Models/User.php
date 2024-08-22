@@ -52,7 +52,7 @@ class User extends Authenticatable
         return $this->BelongsToMany(Role::class);
     }
 
-    public function events(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function restrictedEvents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Event::class, 'restricted_event_users', 'user_id', 'event_id');
     }

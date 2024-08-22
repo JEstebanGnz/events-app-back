@@ -72,7 +72,7 @@ class EventController extends Controller
      */
     public function show(int $id)
     {
-        $event = Event::findOrFail($id);
+        $event = Event::where('id', '=', $id)->with(['users'])->first();
         return response()->json($event);
     }
 

@@ -62,7 +62,6 @@ class AuthController extends Controller
     public function handleCredentialsAuth(Request $request)
     {
         $frontUserInfo = $request->input('user');
-//        $eventId = $request->input('eventId');
 
         //1) Verify there's a user associated with that email
         $user = DB::table('users')->where('email', '=', $frontUserInfo["email"])->first();
@@ -83,7 +82,7 @@ class AuthController extends Controller
         }
 
         //3) User completely validated, return user info
-        return response()->json(['email' => $user->email]);
+        return response()->json(['email' => $user->email, 'id' => $user->id]);
     }
 
     public function userInfo(Request $request){

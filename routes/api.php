@@ -22,17 +22,16 @@ Route::post('auth/google', [\App\Http\Controllers\AuthController::class, 'handle
 Route::post('auth/credentials/validate', [\App\Http\Controllers\AuthController::class, 'handleCredentialsAuth']);
 /* >>>>>>>>>>>>>>>>>>>>>>>  Auth routes >>>>>>>><<<<<< */
 
-
 Route::get('users/{userId}/hasUnreadMessages', [\App\Http\Controllers\UserController::class, 'hasUnreadMessages']);
 
 Route::get('users/{userId}/markReadMessages', [\App\Http\Controllers\UserController::class, 'markReadMessages']);
 
+Route::put('/users/{userId}/roles', [UserController::class, 'updateRoles']);
+
 Route::resource('users', UserController::class,
     [  'as' => 'api']);
 
-Route::post('userInfo', [UserController::class, 'userInfo']);
-
-Route::put('/users/{userId}/roles', [UserController::class, 'updateRoles']);
+Route::get('users/{email}', [UserController::class, 'show']);
 
 Route::resource('roles', \App\Http\Controllers\RoleController::class,
     [  'as' => 'api']);
@@ -47,7 +46,6 @@ Route::get('event/{id}/messages/set', [\App\Http\Controllers\EventFilesControlle
 
 Route::post('event/{id}/users/assign', [\App\Http\Controllers\EventController::class, 'assignUsers']);
 
-
 Route::resource('event/{id}/files', \App\Http\Controllers\EventFilesController::class,
     [  'as' => 'api']);
 
@@ -55,12 +53,3 @@ Route::get('event/{id}/eventFiles/logo', [\App\Http\Controllers\EventFilesContro
 
 Route::resource('event/{id}/meetings', \App\Http\Controllers\EventMeetingsController::class,
     [  'as' => 'api']);
-
-
-
-Route::middleware(['auth:sanctum'])->group(function (){
-    Route::get('userData/test', [\App\Http\Controllers\AuthController::class, 'userInfo']);
-    Route::get('check-auth',[\App\Http\Controllers\AuthController::class, function () {
-        return response()->json(['authenticated' => true]);
-    }]);
-});

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -17,38 +18,6 @@ class UserController extends Controller
     public function index()
     {
         return response()->json(User::with('roles')->get());
-    }
-
-    public function userInfo(Request $request)
-    {
-        $email= $request->input('email');
-
-        $user = DB::table('users')->where('email', '=', $email)->first();
-
-        if(!$user){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'User not found'
-            ], 401);
-        }
-
-        $restrictedEventsAccessible = DB::table('restricted_event_users')
-            ->where('user_id', '=', $user->id)->get();
-        $restrictedEventsAccessibleIds = array_unique(array_column($restrictedEventsAccessible->toArray(), 'event_id'));
-        $accessibleEventsByUser = DB::table('events')->orWhereIn('id', $restrictedEventsAccessibleIds)
-            ->orWhere('restricted_access', '=', 0)->get();
-        $userEventsAdmin = DB::table('event_admin_users')->where('user_id', '=', $user->id)->get();
-        $userEventsAdminIds = array_unique(array_column($userEventsAdmin->toArray(), 'event_id'));
-
-        // Merge events data into the user object
-        $user = (array) $user; // Convert stdClass object to an array
-        $user['eventsAvailable'] = $accessibleEventsByUser;
-        $user['userEventsAdmin'] = $userEventsAdminIds;
-
-        //3) User completely validated, return user info
-        return response()->json([
-                'user' => $user,
-            ]);
     }
 
     public function hasUnreadMessages(Request $request, $userId){
@@ -140,9 +109,23 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $email)
     {
-        //
+        $user = User::with([
+            'restrictedEvents',
+            'eventsAdmin',
+            'roles'])->where('email', '=', $email)->first();
+
+        if(!$user){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found'
+            ], 401);
+        }
+
+        $nonRestrictedEvents = Event::where('restricted_access', '=', false)->get();
+        $user->accessible_events = $nonRestrictedEvents->merge($user->restrictedEvents);
+        return response()->json($user);
     }
 
     /**
