@@ -26,18 +26,15 @@ Route::get('users/{userId}/hasUnreadMessages', [\App\Http\Controllers\UserContro
 
 Route::get('users/{userId}/markReadMessages', [\App\Http\Controllers\UserController::class, 'markReadMessages']);
 
-Route::put('/users/{userId}/roles', [UserController::class, 'updateRoles']);
+Route::put('users/{userId}/roles', [UserController::class, 'updateRoles']);
 
 Route::resource('users', UserController::class,
     [  'as' => 'api']);
-
-Route::get('users/{email}', [UserController::class, 'show']);
 
 Route::resource('roles', \App\Http\Controllers\RoleController::class,
     [  'as' => 'api']);
 
 Route::post('userInfo', [UserController::class, 'userInfo']);
-
 
 Route::resource('events', \App\Http\Controllers\EventController::class,
     [  'as' => 'api']);
