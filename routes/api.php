@@ -36,6 +36,9 @@ Route::get('users/{email}', [UserController::class, 'show']);
 Route::resource('roles', \App\Http\Controllers\RoleController::class,
     [  'as' => 'api']);
 
+Route::post('userInfo', [UserController::class, 'userInfo']);
+
+
 Route::resource('events', \App\Http\Controllers\EventController::class,
     [  'as' => 'api']);
 

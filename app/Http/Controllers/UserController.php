@@ -20,6 +20,28 @@ class UserController extends Controller
         return response()->json(User::with('roles')->get());
     }
 
+    public function userInfo(Request $request)
+    {
+
+        $email = $request->input('email');
+
+        $user = User::with([
+            'restrictedEvents',
+            'eventsAdmin',
+            'roles'])->where('email', '=', $email)->first();
+
+        if(!$user){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found'
+            ], 401);
+        }
+
+        $nonRestrictedEvents = Event::where('restricted_access', '=', false)->get();
+        $user->accessible_events = $nonRestrictedEvents->merge($user->restrictedEvents);
+        return response()->json($user);
+    }
+
     public function hasUnreadMessages(Request $request, $userId){
 
         $hasUnreadMessages = DB::table('users')->where('id', '=', $userId)
