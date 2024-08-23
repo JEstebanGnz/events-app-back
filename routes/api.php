@@ -26,7 +26,7 @@ Route::get('users/{userId}/hasUnreadMessages', [\App\Http\Controllers\UserContro
 
 Route::get('users/{userId}/markReadMessages', [\App\Http\Controllers\UserController::class, 'markReadMessages']);
 
-Route::put('users/{userId}/roles', [UserController::class, 'updateRoles']);
+Route::post('users/{userId}/roles', [UserController::class, 'updateRoles']);
 
 Route::resource('users', UserController::class,
     [  'as' => 'api']);
