@@ -141,6 +141,67 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+
+    public function createUsers(Request $request)
+    {
+        $users = $request->input('users'); // Expecting an array of user objects
+        $createdUsers = [];
+        $failedUsers = [];
+
+        try {
+            foreach ($users as $user) {
+                $userExists = DB::table('users')->where('email', '=', $user["email"])->first();
+
+                if ($userExists) {
+                    // If user already exists, add to failedUsers
+                    $failedUsers[] = [
+                        'email' => $user["email"],
+                        'message' => 'Email already exists!'
+                    ];
+                } else {
+                    // Create user
+                    $userCreated = User::updateOrCreate(
+                        ['email' => $user["email"]],
+                        [
+                            'name' => $user["name"],
+                            'password' => \Illuminate\Support\Facades\Hash::make($user["password"])
+                        ]
+                    );
+
+                    // Assign default role to user
+                    $defaultRoleId = Role::getRoleIdByName('user');
+                    DB::table('role_user')->updateOrInsert(['user_id' => $userCreated->id, 'role_id' => $defaultRoleId]);
+
+                    // Add successfully created user to the response
+                    $createdUsers[] = [
+                        'email' => $user["email"],
+                        'name' => $user["name"]
+                    ];
+                }
+            }
+
+            return response()->json([
+                'message' => 'User creation process completed',
+                'created_users' => $createdUsers,
+                'failed_users' => $failedUsers
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while creating users',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+}
+
+
+
     /**
      * Display the specified resource.
      */

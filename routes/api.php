@@ -31,6 +31,8 @@ Route::post('users/{userId}/roles', [UserController::class, 'updateRoles']);
 Route::resource('users', UserController::class,
     [  'as' => 'api']);
 
+Route::post('/users/create', [\App\Http\Controllers\UserController::class, 'createUsers']);
+
 Route::resource('roles', \App\Http\Controllers\RoleController::class,
     [  'as' => 'api']);
 
