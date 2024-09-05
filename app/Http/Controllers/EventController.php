@@ -45,26 +45,42 @@ class EventController extends Controller
      */
     public function assignUsers(Request $request, string $id)
     {
+        Log::info('assignUsers method called', [
+            'id' => $id,
+            'request' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+
         try {
+            $validatedData = $request->validate([
+                'users' => 'required|array',
+                'users.*.id' => 'required|exists:users,id',
+                'admins' => 'required|array',
+                'admins.*.id' => 'required|exists:users,id',
+            ]);
+
             $event = Event::findOrFail($id);
 
-            $users = $request->input('users');
-            $userIds = array_map(function ($user){
-                return $user['id'];
-            }, $users);
+            $userIds = array_column($validatedData['users'], 'id');
             $event->users()->sync($userIds);
 
-            $admins = $request->input('admins');
-            $adminIds = array_map(function ($admin){
-                return $admin['id'];
-            }, $admins);
+            $adminIds = array_column($validatedData['admins'], 'id');
             $event->admins()->sync($adminIds);
-            return response()->json(['message' => 'Event users updated successfully']);
-        }
-        catch (\Exception $exception) {
-            return response()->json(['message' => 'An error occurred when uploading event users'], 500);
-        }
 
+            return response()->json(['message' => 'Event users updated successfully'], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed', ['errors' => $e->errors()]);
+            return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Event not found', ['id' => $id]);
+            return response()->json(['message' => 'Event not found'], 404);
+        } catch (\Exception $e) {
+            Log::error('An error occurred when updating event users', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'An error occurred when updating event users'], 500);
+        }
     }
 
     /**
