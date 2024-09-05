@@ -87,33 +87,48 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $user = $request->input('user');
+        $users = $request->input('users'); // Expecting an array of user objects
+        $createdUsers = [];
+        $failedUsers = [];
 
-        try{
-            $userExists = DB::table('users')->where('email', '=', $user["email"])->first();
+        try {
+            foreach ($users as $user) {
+                $userExists = DB::table('users')->where('email', '=', $user["email"])->first();
 
-            if($userExists){
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Email already exists!'
-                ], 401);
+                if ($userExists) {
+                    // If user already exists, add to failedUsers
+                    $failedUsers[] = [
+                        'email' => $user["email"],
+                        'message' => 'Email already exists!'
+                    ];
+                } else {
+                    // Create user
+                    $userCreated = User::updateOrCreate(
+                        ['email' => $user["email"]],
+                        [
+                            'name' => $user["name"],
+                            'password' => \Illuminate\Support\Facades\Hash::make($user["password"])
+                        ]
+                    );
+
+                    // Assign default role to user
+                    $defaultRoleId = Role::getRoleIdByName('user');
+                    DB::table('role_user')->updateOrInsert(['user_id' => $userCreated->id, 'role_id' => $defaultRoleId]);
+
+                    // Add successfully created user to the response
+                    $createdUsers[] = [
+                        'email' => $user["email"],
+                        'name' => $user["name"]
+                    ];
+                }
             }
 
-            else{
-                $userCreated = User::updateOrCreate(['email' => $user["email"]],
-                    ['name' => $user["name"],
-                        'password' => \Illuminate\Support\Facades\Hash::make($user["password"])]);
+            return response()->json([
+                'message' => 'User creation process completed',
+                'created_users' => $createdUsers,
+                'failed_users' => $failedUsers
+            ], 201);
 
-                //Set default role to user
-                $defaultRoleId = Role::getRoleIdByName('user');
-                DB::table('role_user')->updateOrInsert(['user_id' => $userCreated->id, 'role_id' => $defaultRoleId]);
-
-                return response()->json([
-                    'message' => 'User created successfully',
-                    'user' => $user
-                ], 201);
-
-            }
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
@@ -121,13 +136,11 @@ class UserController extends Controller
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'An error occurred while creating the user',
+                'message' => 'An error occurred while creating users',
                 'error' => $e->getMessage()
             ], 500);
         }
-
     }
-
     /**
      * Display the specified resource.
      */
