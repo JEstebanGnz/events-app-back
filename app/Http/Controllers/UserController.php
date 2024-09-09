@@ -142,6 +142,18 @@ class UserController extends Controller
         }
     }
 
+    public function changePassword (Request $request, $userId){
+        $newPassword = $request->input('password');
+        try{
+            $user = User::findOrFail($userId);
+            $user->password = \Illuminate\Support\Facades\Hash::make($newPassword);
+            $user->save();
+            return response()->json(['message' => 'Password updated successfully']);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Error updating password'], 422);
+        }
+    }
+
 
     public function createUsers(Request $request)
     {

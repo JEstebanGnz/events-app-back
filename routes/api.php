@@ -28,6 +28,8 @@ Route::get('users/{userId}/markReadMessages', [\App\Http\Controllers\UserControl
 
 Route::post('users/{userId}/roles', [UserController::class, 'updateRoles']);
 
+Route::post('users/{userId}/password', [UserController::class, 'changePassword']);
+
 Route::resource('users', UserController::class,
     [  'as' => 'api']);
 
