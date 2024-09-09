@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-         $schedule->command('app:update-events-info')->everyTenSeconds()->withoutOverlapping();
+         $schedule->command('app:update-events-info')->everyMinute()->withoutOverlapping();
     }
 
     /**
