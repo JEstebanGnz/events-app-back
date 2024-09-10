@@ -30,7 +30,7 @@ class UserController extends Controller
             'eventsAdmin',
             'roles'])->where('email', '=', $email)->first();
 
-        if(!$user){
+        if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found'
@@ -42,19 +42,20 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    public function hasUnreadMessages(Request $request, $userId){
+    public function hasUnreadMessages(Request $request, $userId)
+    {
 
         $hasUnreadMessages = DB::table('users')->where('id', '=', $userId)
             ->where('has_unread_messages', '=', 1)->first();
-        if($hasUnreadMessages){
+        if ($hasUnreadMessages) {
             return response()->json(['hasUnreadMessages' => true]);
-        }
-        else{
+        } else {
             return response()->json(['hasUnreadMessages' => false]);
         }
     }
 
-    public function markReadMessages(Request $request, $userId){
+    public function markReadMessages(Request $request, $userId)
+    {
 
         DB::table('users')->where('id', '=', $userId)
             ->where('has_unread_messages', '=', 1)->update(['has_unread_messages' => 0]);
@@ -142,9 +143,10 @@ class UserController extends Controller
         }
     }
 
-    public function changePassword (Request $request, $userId){
+    public function changePassword(Request $request, $userId)
+    {
         $newPassword = $request->input('password');
-        try{
+        try {
             $user = User::findOrFail($userId);
             $user->password = \Illuminate\Support\Facades\Hash::make($newPassword);
             $user->save();
@@ -210,9 +212,7 @@ class UserController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-}
-
-
+    }
 
     /**
      * Display the specified resource.
@@ -224,7 +224,7 @@ class UserController extends Controller
             'eventsAdmin',
             'roles'])->where('email', '=', $email)->first();
 
-        if(!$user){
+        if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found'

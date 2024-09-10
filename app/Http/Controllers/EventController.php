@@ -47,17 +47,9 @@ class EventController extends Controller
     {
         try {
             $event = Event::findOrFail($id);
-
-            $users = $request->input('users');
-            $userIds = array_map(function ($user){
-                return $user['id'];
-            }, $users);
+            $userIds = $request->input('users');
             $event->users()->sync($userIds);
-
-            $admins = $request->input('admins');
-            $adminIds = array_map(function ($admin){
-                return $admin['id'];
-            }, $admins);
+            $adminIds = $request->input('admins');
             $event->admins()->sync($adminIds);
             return response()->json(['message' => 'Event users updated successfully']);
         }
